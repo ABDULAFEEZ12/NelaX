@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>NelaX Lite - AI Study Agent</title>
+<style>
+  :root{
+    --bg-1: #667eea;
+    --bg-2: #764ba2;
+    --brand-1: #007bff;
+    --brand-2: #0056b3;
+    --muted: #6c757d;
+    --chat-bg: #f8f9fa;
+    --card-border: #e9ecef;
+    --user-bg: linear-gradient(135deg,var(--brand-1),var(--brand-2));
+    --ai-bg: #ffffff;
+    --radius: 18px;
+    --max-width: 880px;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Segoe UI Mono", monospace;
+    --nav-bg: #ffffff;
+    --nav-text: #2d3748;
+    --nav-hover: #f7fafc;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html,body { height: 100%; }
+  body{
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg,var(--bg-1) 0%,var(--bg-2) 100%);
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s ease;
+  }
+
+  .container{
+    width: 100%;
+    max-width: var(--max-width);
+    background: white;
+    border-radius: calc(var(--radius) + 4px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
+    min-height: 80vh;
+    transition: all 0.3s ease;
+  }
+
+  /* Navigation Bar */
+  .nav-bar {
+    background: var(--nav-bg);
+    border-bottom: 1px solid #e2e8f0;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+  }
+
+  .nav-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    color: var(--nav-text);
+  }
+
+  .nav-toggle {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background 0.2s;
+    color: inherit;
+  }
+
+  .nav-toggle:hover {
+    background: var(--nav-hover);
+  }
+
+  .theme-toggle {
+    background: none;
+    border: 1px solid #e2e8f0;
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .theme-toggle:hover {
+    background: #f7fafc;
+    border-color: #cbd5e0;
+    transform: rotate(15deg);
+  }
+
+  .nav-menu {
+    position: absolute;
+    top: 60px;
+    left: 20px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    padding: 12px;
+    min-width: 220px;
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    transition: all 0.3s ease;
+  }
+
+  .nav-menu.show {
+    display: flex;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+    color: var(--nav-text);
+    font-size: 0.95rem;
+  }
+
+  .nav-item:hover {
+    background: var(--nav-hover);
+  }
+
+  .nav-item.active {
+    background: #ebf8ff;
+    color: var(--brand-1);
+    font-weight: 600;
+  }
+
+  .welcome-text {
+    font-size: 0.9rem;
+    color: #4a5568;
+    transition: color 0.3s ease;
+  }
+
+  .header{
+    padding: 24px;
+    background: linear-gradient(135deg,var(--brand-1),var(--brand-2));
+    color: white;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+  .header h1{ font-size: 1.45rem; font-weight: 700; letter-spacing: -0.2px; }
+  .header p{ margin-top:6px; opacity: 0.92; font-size: 0.95rem; }
+
+  .header .meta{
+    margin-top: 10px;
+    font-size: 0.85rem;
+    opacity: 0.95;
+  }
+
+  /* Chat area */
+  .chat-wrap{
+    background: var(--chat-bg);
+    padding: 18px;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: background 0.3s ease;
+  }
+
+  .messages{
+    overflow-y: auto;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    scroll-behavior: smooth;
+  }
+
+  .bubble{
+    max-width: 82%;
+    padding: 14px 16px;
+    border-radius: var(--radius);
+    word-break: break-word;
+    animation: fadeIn .18s ease;
+    border: 1px solid var(--card-border);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    line-height: 1.45;
+    transition: all 0.3s ease;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
+
+  .ai{
+    align-self: flex-start;
+    background: var(--ai-bg);
+    color: #222;
+    border-bottom-left-radius: 6px;
+  }
+
+  .user{
+    align-self: flex-end;
+    background: var(--user-bg);
+    color: #fff;
+    border-bottom-right-radius: 6px;
+    text-align: left;
+  }
+
+  .meta-line{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    font-size: 0.86rem;
+    color: var(--muted);
+    margin-bottom: 8px;
+    transition: color 0.3s ease;
+  }
+
+  .ai .meta-line { color: #495057; }
+  .user .meta-line { opacity: 0.96; }
+
+  .suggestions{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    padding: 12px 8px 18px;
+  }
+
+  .chip{
+    background: #eef2ff;
+    padding: 8px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 0.92rem;
+    border: 1px solid transparent;
+    transition: transform .12s ease, background .12s ease;
+    color: inherit;
+  }
+  .chip:hover{ transform: translateY(-4px); background: #dbe9ff; }
+
+  /* typing indicator */
+  .typing{
+    display:inline-flex;
+    gap:6px;
+    align-items:center;
+    padding: 8px 12px;
+    border-radius: 14px;
+    background: var(--ai-bg);
+    border: 1px solid var(--card-border);
+    transition: all 0.3s ease;
+  }
+  .dot{
+    width:8px; height:8px; border-radius:50%; background:#666; opacity:.9;
+    animation: blink 1s infinite;
+    transition: background 0.3s ease;
+  }
+  .dot:nth-child(2){ animation-delay: .15s; }
+  .dot:nth-child(3){ animation-delay: .3s; }
+  @keyframes blink{ 0%{ transform: translateY(0); opacity:.35 } 50%{ transform: translateY(-6px); opacity:1 } 100%{ transform: translateY(0); opacity:.35 } }
+
+  /* input area */
+  .composer{
+    padding: 16px 20px;
+    background: white;
+    border-top: 1px solid var(--card-border);
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    transition: all 0.3s ease;
+  }
+
+  .composer .input{
+    flex: 1;
+    display:flex;
+    gap:10px;
+    align-items:center;
+    background: #fff;
+    border-radius: 999px;
+    padding: 8px 12px;
+    border: 1px solid #e6e9ee;
+    transition: all 0.3s ease;
+  }
+
+  .composer input[type="text"]{
+    flex:1;
+    border: none;
+    outline: none;
+    font-size: 1rem;
+    padding: 12px 8px;
+    background: transparent;
+    color: inherit;
+    transition: color 0.3s ease;
+  }
+
+  .composer input[type="text"]::placeholder {
+    color: #9ca3af;
+  }
+
+  .send-btn{
+    background: linear-gradient(135deg,var(--brand-1),var(--brand-2));
+    color: #fff;
+    border:none;
+    padding: 10px 16px;
+    border-radius: 999px;
+    font-weight:700;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(0,123,255,0.12);
+    transition: all 0.3s ease;
+  }
+  .send-btn:disabled{ opacity: .6; cursor:not-allowed; box-shadow:none; }
+
+  /* Math formatting */
+  .math-inline {
+    font-family: "Times New Roman", serif;
+    font-style: italic;
+    background: #f8f9fa;
+    padding: 2px 4px;
+    border-radius: 4px;
+    border: 1px solid #e9ecef;
+  }
+
+  .math-block {
+    text-align: center;
+    margin: 16px 0;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    font-family: "Times New Roman", serif;
+    font-style: italic;
+  }
+
+  /* Dark theme variables */
+  [data-theme="dark"] {
+    --bg-1: #1a202c;
+    --bg-2: #2d3748;
+    --brand-1: #63b3ed;
+    --brand-2: #4299e1;
+    --muted: #a0aec0;
+    --chat-bg: #2d3748;
+    --card-border: #4a5568;
+    --user-bg: linear-gradient(135deg, var(--brand-1), var(--brand-2));
+    --ai-bg: #4a5568;
+    --nav-bg: #2d3748;
+    --nav-text: #e2e8f0;
+    --nav-hover: #4a5568;
+  }
+
+  [data-theme="dark"] body {
+    background: linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 100%);
+  }
+
+  [data-theme="dark"] .container {
+    background: #2d3748;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  }
+
+  [data-theme="dark"] .nav-bar {
+    background: var(--nav-bg);
+    border-bottom-color: #4a5568;
+  }
+
+  [data-theme="dark"] .nav-menu {
+    background: #2d3748;
+    border-color: #4a5568;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+  }
+
+  [data-theme="dark"] .nav-item {
+    color: #e2e8f0;
+  }
+
+  [data-theme="dark"] .nav-item.active {
+    background: #2d4a6d;
+    color: #63b3ed;
+  }
+
+  [data-theme="dark"] .nav-item:hover {
+    background: #4a5568;
+  }
+
+  [data-theme="dark"] .welcome-text {
+    color: #e2e8f0;
+  }
+
+  [data-theme="dark"] .theme-toggle {
+    border-color: #4a5568;
+    background: #4a5568;
+  }
+
+  [data-theme="dark"] .theme-toggle:hover {
+    background: #5a6578;
+    border-color: #6b7280;
+  }
+
+  [data-theme="dark"] .chat-wrap {
+    background: var(--chat-bg);
+  }
+
+  [data-theme="dark"] .bubble {
+    border-color: var(--card-border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  [data-theme="dark"] .ai .bubble {
+    background: var(--ai-bg);
+    color: #e2e8f0;
+  }
+
+  [data-theme="dark"] .ai .meta-line {
+    color: #cbd5e0;
+  }
+
+  [data-theme="dark"] .composer {
+    background: var(--nav-bg);
+    border-top-color: var(--card-border);
+  }
+
+  [data-theme="dark"] .composer .input {
+    background: #4a5568;
+    border-color: #5a6578;
+  }
+
+  [data-theme="dark"] .composer input[type="text"] {
+    background: #4a5568;
+    color: #e2e8f0;
+  }
+
+  [data-theme="dark"] .composer input[type="text"]::placeholder {
+    color: #a0aec0;
+  }
+
+  [data-theme="dark"] .composer input[type="text"]:focus {
+    border-color: var(--brand-1);
+    box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.1);
+  }
+
+  [data-theme="dark"] .chip {
+    background: #4a5568;
+    color: #e2e8f0;
+    border-color: #5a6578;
+  }
+
+  [data-theme="dark"] .chip:hover {
+    background: #5a6578;
+    transform: translateY(-4px);
+  }
+
+  [data-theme="dark"] .typing {
+    background: var(--ai-bg);
+    border-color: var(--card-border);
+  }
+
+  [data-theme="dark"] .dot {
+    background: #cbd5e0;
+  }
+
+  [data-theme="dark"] .math-inline,
+  [data-theme="dark"] .math-block {
+    background: #4a5568;
+    border-color: #5a6578;
+    color: #e2e8f0;
+  }
+
+  /* responsive */
+  @media (max-width:600px){
+    .container{ border-radius: 14px; margin: 4px; min-height: 76vh; }
+    .header h1 { font-size: 1.1rem; }
+    .composer input[type="text"]{ font-size: .98rem; }
+    .chat-wrap{ padding: 12px; }
+    .nav-bar { padding: 10px 15px; }
+    .nav-menu { left: 15px; right: 15px; min-width: auto; }
+    .nav-right { gap: 8px; }
+  }
+</style>
+</head>
+<body>
+  <main class="container" role="main" aria-label="NelaX chat container">
+    <!-- Navigation Bar -->
+    <nav class="nav-bar" role="navigation">
+      <div class="nav-left">
+        <button class="nav-toggle" id="navToggle">☰</button>
+        <div class="welcome-text">☀️ Welcome to NelaX!</div>
+      </div>
+      <div class="nav-right">
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+          <span class="theme-icon">🌙</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Navigation Menu -->
+    <div class="nav-menu" id="navMenu">
+      <a href="/talk-to-nelax" class="nav-item ">🎙️ Talk To NelaX</a>
+      <a href="/materials" class="nav-item">📚 Materials</a>
+      <a href="/reels" class="nav-item">🎥 Reels</a>
+      <a href="/cbt" class="nav-item">🧠 CBT Test</a>
+      <a href="/about" class="nav-item">ℹ️ About</a>
+    </div>
+
+    <header class="header" role="banner">
+      <h1>NelaX Lite 🤖 <span style="font-weight:700; font-size:.9rem; margin-left:8px; background:#ff6b6b; padding:5px 10px; border-radius:999px; color:#fff;">ADK TS</span></h1>
+      <p class="meta">🌟 Your Educational AI Companion 🌟</p>
+      <div class="meta">💡 Study smarter, achieve more! 💡</div>
+    </header>
+
+    <section class="chat-wrap" aria-live="polite">
+      <div id="messages" class="messages" role="log" aria-relevant="additions"></div>
+
+      <div class="suggestions" id="suggestions" aria-hidden="false">
+        <button class="chip" data-q="How to start coding?">💻 Start Coding</button>
+        <button class="chip" data-q="Help with algebra">🔢 Math Help</button>
+        <button class="chip" data-q="Study tips for exams">🎯 Study Tips</button>
+      </div>
+    </section>
+
+    <form id="composer" class="composer" action="javascript:void(0)" aria-label="Send message form">
+      <div class="input" role="search">
+        <input id="userInput" type="text" placeholder="🤖 Ask Nelavista about your studies, motivation, or learning tips..." aria-label="Message input" autocomplete="off" />
+      </div>
+      <button id="sendBtn" class="send-btn" type="submit" aria-label="Send message">Send</button>
+    </form>
+  </main>
+
+<script>
+  // Theme toggle functionality
+  (function(){
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = themeToggle.querySelector('.theme-icon');
+    
+    // Check for saved theme preference or default to light
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    updateThemeIcon(currentTheme);
+
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      updateThemeIcon(newTheme);
+      
+      // Add animation effect
+      themeToggle.style.transform = 'scale(0.9)';
+      setTimeout(() => {
+        themeToggle.style.transform = 'scale(1)';
+      }, 150);
+    });
+
+    function updateThemeIcon(theme) {
+      themeIcon.textContent = theme === 'light' ? '🌙' : '☀️';
+      themeToggle.setAttribute('aria-label', 
+        theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'
+      );
+    }
+  })();
+
+  // Navigation functionality
+  (function(){
+    const navToggle = document.getElementById('navToggle');
+    const navMenu = document.getElementById('navMenu');
+
+    // Toggle navigation menu
+    navToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      navMenu.classList.toggle('show');
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!navMenu.contains(e.target) && e.target !== navToggle) {
+        navMenu.classList.remove('show');
+      }
+    });
+
+    // Handle navigation item clicks
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        // Remove active class from all items
+        navItems.forEach(i => i.classList.remove('active'));
+        // Add active class to clicked item
+        item.classList.add('active');
+        // Close menu
+        navMenu.classList.remove('show');
+        
+        // Handle different navigation actions
+        const text = item.textContent.trim();
+        switch(text) {
+          case '🎙️ Talk To NelaX':
+            window.location.href = '/talk-to-nelax';
+            break;
+          case '📚 Materials':
+            window.location.href = '/materials';
+            break;
+          case '🎥 Reels':
+            window.location.href = '/reels';
+            break;
+          case '🧠 CBT Test':
+            window.location.href = '/cbt';
+            break;
+          case 'ℹ️ About':
+            window.location.href = '/about';
+            break;
+          case '⚙️ Settings':
+            alert('⚙️ Settings panel would open here');
+            break;
+          case 'ℹ️ Privacy Policy':
+            window.location.href = '/privacy-policy';
+            break;
+        }
+      });
+    });
+  })();
+
+  // Frontend chat logic with math support
+  (function(){
+    const messagesEl = document.getElementById('messages');
+    const inputEl = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const suggestions = document.getElementById('suggestions');
+
+    let isWaiting = false;
+
+    // Helper create bubble
+    function createBubble(text, who='ai') {
+      const wrap = document.createElement('div');
+      wrap.className = 'bubble ' + (who === 'user' ? 'user' : 'ai');
+      
+      // meta line
+      const metaLine = document.createElement('div');
+      metaLine.className = 'meta-line';
+      if (who === 'user') metaLine.textContent = 'You';
+      else metaLine.textContent = 'NelaX';
+      wrap.appendChild(metaLine);
+
+      // content
+      const p = document.createElement('div');
+      p.innerHTML = text;
+      wrap.appendChild(p);
+
+      return wrap;
+    }
+
+    function scrollToBottom() {
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function showTypingIndicator() {
+      const t = document.createElement('div');
+      t.className = 'typing';
+      t.id = 'typingIndicator';
+      t.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
+      messagesEl.appendChild(t);
+      scrollToBottom();
+    }
+
+    function removeTypingIndicator() {
+      const t = document.getElementById('typingIndicator');
+      if (t) t.remove();
+    }
+
+    // Enhanced markdown formatting with math support
+    function formatMarkdown(text){
+      if (!text) return '';
+      
+      // First escape HTML
+      let t = escapeHtml(text);
+      
+      // Handle mathematical expressions with $...$ and $$...$$
+      t = t.replace(/\$\$(.*?)\$\$/g, '<div class="math-block">\\[ $1 \\]</div>');
+      t = t.replace(/\$(.*?)\$/g, '<span class="math-inline">\\( $1 \\)</span>');
+      
+      // Bold **text**
+      t = t.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      
+      // Bullet points
+      t = t.replace(/^\s*[-•]\s+(.*)$/gm, '<div style="margin: 4px 0;">• $1</div>');
+      
+      // Numbered lists like 1), 2), etc.
+      t = t.replace(/^(\d+\))\s+(.*)$/gm, '<div style="margin: 8px 0;"><strong>$1</strong> $2</div>');
+      
+      // Inline code `code`
+      t = t.replace(/`([^`]+)`/g, '<code style="background:#f3f4f6;padding:2px 6px;border-radius:6px;font-family:monospace;font-size:.95em;">$1</code>');
+      
+      // Line breaks
+      t = t.replace(/\n/g, '<br>');
+      
+      return t;
+    }
+
+    // small helpers
+    function escapeHtml(text){
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;' };
+      return String(text).replace(/[&<>]/g, m => map[m]);
+    }
+
+    // initial welcome message
+    function bootMessage(){
+      const intro = `
+        <strong>👋 Hello! I'm NelaX, your AI study buddy</strong>
+        <div style="margin-top:8px; color:#4b5563;">
+          I can help you with:<br>
+          • <strong>Programming and coding</strong><br>
+          • <strong>Mathematics and problem solving</strong><br>
+          • <strong>Science and learning strategies</strong>
+        </div>
+        <div style="margin-top:10px; font-size:0.9rem; color:#6b7280;">
+          <em>Powered by ADK TS + Nelavista • Created by Afeez Tella Adewale</em>
+        </div>
+        <div style="margin-top:8px; font-size:0.85rem; color:#6b7280;">
+          <strong>Tip:</strong> I support mathematical notation using $...$ for inline math and $$...$$ for display math.
+        </div>
+      `;
+      
+      const welcomeBubble = createBubble(intro, 'ai');
+      messagesEl.appendChild(welcomeBubble);
+      scrollToBottom();
+    }
+
+    bootMessage();
+
+    // wire suggestion chips
+    suggestions.addEventListener('click', (e) => {
+      const btn = e.target.closest('.chip');
+      if (!btn) return;
+      ask(btn.dataset.q);
+    });
+
+    // handle enter and send
+    document.getElementById('composer').addEventListener('submit', e => {
+      e.preventDefault();
+      ask();
+    });
+
+    async function ask(predefined = null) {
+      if (isWaiting) return;
+      const text = predefined || inputEl.value.trim();
+      if (!text) return;
+      
+      // add user bubble
+      const userBubble = createBubble(escapeHtml(text), 'user');
+      messagesEl.appendChild(userBubble);
+      inputEl.value = '';
+      scrollToBottom();
+
+      // show typing
+      showTypingIndicator();
+      isWaiting = true;
+      sendBtn.disabled = true;
+
+      try {
+        const res = await fetch('/execute', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            command: 'ask_question',
+            args: { message: text }
+          })
+        });
+
+        const data = await res.json();
+        removeTypingIndicator();
+        isWaiting = false;
+        sendBtn.disabled = false;
+
+        if (!data || !data.success) {
+          const err = createBubble('🔌 Network error or server error. Try again.', 'ai');
+          messagesEl.appendChild(err);
+          scrollToBottom();
+          return;
+        }
+
+        // render ai response with math formatting
+        const reply = data.response || '';
+        const aiBubble = createBubble(formatMarkdown(reply), 'ai');
+        messagesEl.appendChild(aiBubble);
+        scrollToBottom();
+        
+      } catch (err) {
+        removeTypingIndicator();
+        isWaiting = false;
+        sendBtn.disabled = false;
+        const errBubble = createBubble('🔌 Network error. Check connection.', 'ai');
+        messagesEl.appendChild(errBubble);
+        scrollToBottom();
+      }
+    }
+
+    // focus input
+    inputEl.focus();
+
+  })();
+</script>
+</body>
+</html>

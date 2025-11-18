@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Materials - NelaX Lite</title>
+    <style>
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --bg-light: #f8f9fa;
+            --text-dark: #2d3748;
+            --card-bg: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .content {
+            padding: 30px;
+            display: grid;
+            gap: 30px;
+        }
+
+        .filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            background: var(--bg-light);
+            padding: 25px;
+            border-radius: 15px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .filter-group select, .filter-group input {
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .filter-group select:focus, .filter-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            align-self: end;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .results {
+            display: grid;
+            gap: 20px;
+        }
+
+        .ai-explanation {
+            background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+            padding: 25px;
+            border-radius: 15px;
+            border-left: 5px solid var(--primary);
+        }
+
+        .materials-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .material-section {
+            background: var(--bg-light);
+            padding: 25px;
+            border-radius: 15px;
+        }
+
+        .material-section h3 {
+            margin-bottom: 15px;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .material-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .material-item {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .material-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-color: var(--primary);
+        }
+
+        .material-item h4 {
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .material-item .author {
+            color: #718096;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .material-item .link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+
+        .error {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+            
+            .filters {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/" class="back-button">← Back to NelaX</a>
+            <h1>📚 Study Materials</h1>
+            <p>Find the perfect learning resources for your course</p>
+        </div>
+
+        <div class="content">
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="department">Department/Course</label>
+                    <select id="department">
+                        <option value="">Select Department</option>
+                        <option value="Computer Science">Computer Science</option>
+                        <option value="Mathematics">Mathematics</option>
+                        <option value="Physics">Physics</option>
+                        <option value="Chemistry">Chemistry</option>
+                        <option value="Biology">Biology</option>
+                        <option value="Engineering">Engineering</option>
+                        <option value="Business">Business</option>
+                        <option value="Medicine">Medicine</option>
+                        <option value="Law">Law</option>
+                        <option value="Arts">Arts</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="level">Academic Level</label>
+                    <select id="level">
+                        <option value="">Select Level</option>
+                        <option value="100 Level">100 Level</option>
+                        <option value="200 Level">200 Level</option>
+                        <option value="300 Level">300 Level</option>
+                        <option value="400 Level">400 Level</option>
+                        <option value="500 Level">500 Level</option>
+                        <option value="Masters">Masters</option>
+                        <option value="PhD">PhD</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="topic">Topic/Subject</label>
+                    <input type="text" id="topic" placeholder="e.g., Calculus, Programming, Biology...">
+                </div>
+
+                <button class="search-btn" onclick="searchMaterials()">🔍 Search Materials</button>
+            </div>
+
+            <div class="results" id="results">
+                <div class="loading" id="loading" style="display: none;">
+                    <p>🔍 Searching for the best study materials...</p>
+                </div>
+                <div class="error" id="error" style="display: none;"></div>
+                
+                <div id="aiExplanation" class="ai-explanation" style="display: none;"></div>
+                
+                <div class="materials-grid">
+                    <div class="material-section" id="pdfsSection" style="display: none;">
+                        <h3>📄 PDF Documents</h3>
+                        <div class="material-list" id="pdfsList"></div>
+                    </div>
+
+                    <div class="material-section" id="booksSection" style="display: none;">
+                        <h3>📚 Recommended Books</h3>
+                        <div class="material-list" id="booksList"></div>
+                    </div>
+
+                    <div class="material-section" id="videosSection" style="display: none;">
+                        <h3>🎥 Video Tutorials</h3>
+                        <div class="material-list" id="videosList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function searchMaterials() {
+            const department = document.getElementById('department').value;
+            const level = document.getElementById('level').value;
+            const topic = document.getElementById('topic').value;
+
+            if (!department || !level || !topic) {
+                showError('Please fill in all fields: Department, Level, and Topic');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('error').style.display = 'none';
+            hideAllSections();
+
+            try {
+                const response = await fetch(`/api/materials?topic=${encodeURIComponent(topic)}&level=${encodeURIComponent(level)}&department=${encodeURIComponent(department)}`);
+                const data = await response.json();
+
+                document.getElementById('loading').style.display = 'none';
+
+                if (!data.success) {
+                    showError(data.error || 'Failed to load materials');
+                    return;
+                }
+
+                // Display AI explanation
+                if (data.ai_explanation) {
+                    document.getElementById('aiExplanation').innerHTML = `
+                        <h3>🎓 AI Study Guide</h3>
+                        <p>${data.ai_explanation.replace(/\n/g, '<br>')}</p>
+                    `;
+                    document.getElementById('aiExplanation').style.display = 'block';
+                }
+
+                // Display PDFs
+                if (data.pdfs && data.pdfs.length > 0) {
+                    displayMaterials(data.pdfs, 'pdfsList', 'pdf');
+                    document.getElementById('pdfsSection').style.display = 'block';
+                }
+
+                // Display Books
+                if (data.books && data.books.length > 0) {
+                    displayMaterials(data.books, 'booksList', 'book');
+                    document.getElementById('booksSection').style.display = 'block';
+                }
+
+                // Display Videos
+                if (data.videos && data.videos.length > 0) {
+                    displayMaterials(data.videos, 'videosList', 'video');
+                    document.getElementById('videosSection').style.display = 'block';
+                }
+
+                // If no materials found
+                if (!data.pdfs?.length && !data.books?.length && !data.videos?.length) {
+                    showError('No study materials found for your search. Try different keywords.');
+                }
+
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                showError('Network error. Please check your connection and try again.');
+                console.error('Error:', error);
+            }
+        }
+
+        function displayMaterials(materials, listId, type) {
+            const list = document.getElementById(listId);
+            list.innerHTML = '';
+
+            materials.forEach(material => {
+                const item = document.createElement('div');
+                item.className = 'material-item';
+                
+                if (type === 'pdf') {
+                    item.innerHTML = `
+                        <h4>${material.title}</h4>
+                        <a href="${material.link}" target="_blank" class="link">📥 Download PDF</a>
+                    `;
+                } else if (type === 'book') {
+                    item.innerHTML = `
+                        <h4>${material.title}</h4>
+                        ${material.author ? `<div class="author">By ${material.author}</div>` : ''}
+                        <a href="${material.link}" target="_blank" class="link">📖 View Book</a>
+                    `;
+                } else if (type === 'video') {
+                    item.innerHTML = `
+                        <h4>${material.title}</h4>
+                        <a href="${material.video_url}" target="_blank" class="link">🎬 Watch Video</a>
+                    `;
+                }
+
+                list.appendChild(item);
+            });
+        }
+
+        function hideAllSections() {
+            document.getElementById('aiExplanation').style.display = 'none';
+            document.getElementById('pdfsSection').style.display = 'none';
+            document.getElementById('booksSection').style.display = 'none';
+            document.getElementById('videosSection').style.display = 'none';
+        }
+
+        function showError(message) {
+            document.getElementById('error').textContent = message;
+            document.getElementById('error').style.display = 'block';
+        }
+
+        // Allow Enter key to trigger search
+        document.getElementById('topic').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchMaterials();
+            }
+        });
+    </script>
+</body>
+</html>

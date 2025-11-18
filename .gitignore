@@ -1,0 +1,8 @@
+.env
+.DS_Store
+Thumbs.db
+*.log
+.nyc_output
+coverage/
+.env.local
+.env.production

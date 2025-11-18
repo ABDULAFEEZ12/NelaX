@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Talk to NelaX</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#007bff" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      align-items: center;
+    }
+
+    .container {
+      max-width: 480px;
+      width: 90%;
+      background: white;
+      padding: 25px;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      color: #007bff;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    .text {
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      color: #555;
+      line-height: 1.5;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 12px 15px;
+      margin: 10px 0;
+      border-radius: 12px;
+      border: 2px solid #e9ecef;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      box-sizing: border-box;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    }
+
+    button {
+      background: linear-gradient(135deg, #007bff, #0056b3);
+      color: white;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 123, 255, 0.3);
+    }
+
+    .orb-wrapper {
+      display: flex;
+      justify-content: center;
+      margin: 2rem 0;
+      position: relative;
+    }
+
+    .orbit-ring {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 2px dashed rgba(0, 123, 255, 0.3);
+      transform: translate(-50%, -50%);
+      animation: spin 8s linear infinite;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    @keyframes spin {
+      from { transform: translate(-50%, -50%) rotate(0deg); }
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    .orb {
+      width: 90px;
+      height: 90px;
+      background: linear-gradient(135deg, #007bff, #0056b3);
+      border-radius: 50%;
+      box-shadow: 0 0 30px rgba(0, 123, 255, 0.5);
+      position: relative;
+      animation: pulse 3s infinite;
+      transition: all 0.3s ease;
+      z-index: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.5rem;
+    }
+
+    .orb.listening {
+      animation: glow 1s infinite alternate;
+      background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+      box-shadow: 0 0 35px rgba(255, 107, 107, 0.6);
+    }
+
+    .orb.speaking {
+      background: linear-gradient(135deg, #4caf50, #45a049);
+      box-shadow: 0 0 35px rgba(76, 175, 80, 0.6);
+    }
+
+    .sound-wave {
+      position: absolute;
+      bottom: -15px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 4px;
+    }
+
+    .sound-wave .bar {
+      width: 5px;
+      height: 12px;
+      background: white;
+      border-radius: 3px;
+      animation: wave 0.8s infinite ease-in-out;
+    }
+
+    .sound-wave .bar:nth-child(2) { animation-delay: 0.1s; }
+    .sound-wave .bar:nth-child(3) { animation-delay: 0.2s; }
+    .sound-wave .bar:nth-child(4) { animation-delay: 0.3s; }
+    .sound-wave .bar:nth-child(5) { animation-delay: 0.4s; }
+
+    @keyframes glow {
+      from { box-shadow: 0 0 25px rgba(255, 107, 107, 0.6); }
+      to { box-shadow: 0 0 40px rgba(255, 107, 107, 0.8); }
+    }
+
+    @keyframes wave {
+      0%, 100% { height: 12px; }
+      50% { height: 25px; }
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 15px rgba(0, 123, 255, 0.4); }
+      50% { box-shadow: 0 0 30px rgba(0, 123, 255, 0.7); }
+      100% { box-shadow: 0 0 15px rgba(0, 123, 255, 0.4); }
+    }
+
+    .log {
+      background: #f8f9fa;
+      border: 2px solid #e9ecef;
+      border-radius: 15px;
+      padding: 15px;
+      font-size: 0.95rem;
+      white-space: pre-line;
+      margin-bottom: 1.5rem;
+      text-align: left;
+      max-height: 200px;
+      overflow-y: auto;
+      line-height: 1.4;
+    }
+
+    .log strong {
+      color: #007bff;
+    }
+
+    .log em {
+      color: #6c757d;
+      font-style: italic;
+    }
+
+    .info {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 1.5rem;
+      text-align: left;
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 12px;
+      border-left: 4px solid #007bff;
+    }
+
+    .info strong {
+      color: #495057;
+    }
+
+    .info button {
+      background: linear-gradient(135deg, #28a745, #20c997);
+      margin-top: 0.8rem;
+      font-size: 0.9rem;
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .nav-buttons button {
+      flex: 1;
+      padding: 10px;
+      font-size: 0.9rem;
+    }
+
+    .nav-buttons .materials-btn {
+      background: linear-gradient(135deg, #6f42c1, #e83e8c);
+    }
+
+    .nav-buttons .reels-btn {
+      background: linear-gradient(135deg, #fd7e14, #e74a3b);
+    }
+
+    @media (max-width: 480px) {
+      h2 { font-size: 1.3rem; }
+      .orb { width: 80px; height: 80px; font-size: 1.3rem; }
+      .orbit-ring { width: 100px; height: 100px; }
+      input, select { font-size: 0.95rem; }
+      .container { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🎙️ Talk to NelaX</h2>
+    <div class="subtitle">🌟 Your AI Study Companion</div>
+    <div class="text">Enter your name, pick a voice, then click the glowing orb to speak or type below</div>
+
+    <input type="text" id="username" placeholder="Enter your name (optional)" value="Student">
+    <select id="voiceSelect" aria-label="Voice Selection"><option>Loading voices...</option></select>
+
+    <div class="orb-wrapper" id="mic">
+      <div class="orbit-ring"></div>
+      <div class="orb" id="orb">
+        🤖
+        <div class="sound-wave" id="wave" style="display:none;">
+          <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        </div>
+      </div>
+    </div>
+
+    <input type="text" id="typedQuestion" placeholder="Ask NelaX about your studies, math, or programming..." />
+    <button onclick="handleTypedInput()">Ask NelaX</button>
+
+    <div class="log" id="log">Welcome to NelaX! 🤖 Ask me anything about your studies, mathematics, programming, or science. I'm here to help you learn!</div>
+
+    <div class="nav-buttons">
+      <button class="materials-btn" onclick="window.location.href='/materials'">📚 Study Materials</button>
+      <button class="reels-btn" onclick="window.location.href='/reels'">🎥 Video Reels</button>
+    </div>
+
+    <div class="info">
+      🎯 <strong>Study Focus:</strong> Mathematics, Programming, Science & Learning Strategies<br>
+      💡 <strong>Smart Features:</strong> Step-by-step explanations, Code examples, Math formatting<br>
+      🌐 <strong>Multilingual Support:</strong> English (More languages coming soon)<br>
+      📚 <strong>Study Modes:</strong> Quick answers & Detailed explanations<br>
+      📥 <button onclick="downloadChat()">Download Full Chat</button>
+    </div>
+  </div>
+
+  <script>
+    const micBtn = document.getElementById('mic');
+    const orb = document.getElementById('orb');
+    const logDiv = document.getElementById('log');
+    const wave = document.getElementById('wave');
+    const voiceSelect = document.getElementById('voiceSelect');
+    const usernameInput = document.getElementById('username');
+    const typedInput = document.getElementById('typedQuestion');
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let conversationHistory = JSON.parse(localStorage.getItem('nelaxHistory')) || [];
+    let voices = [], bestVoice = null;
+
+    // Initialize with welcome message if no history
+    if (conversationHistory.length === 0) {
+      conversationHistory.push({
+        role: 'assistant', 
+        content: 'Welcome to NelaX! 🤖 Ask me anything about your studies, mathematics, programming, or science. I\'m here to help you learn!'
+      });
+    }
+
+    function populateVoiceOptions() {
+      voices = window.speechSynthesis.getVoices();
+      if (!voices.length) return;
+      voiceSelect.innerHTML = voices.map(v => `<option value="${v.name}">${v.name} (${v.lang})</option>`).join('');
+      bestVoice = voices.find(v => v.name.includes('Google US English') || v.lang === 'en-US') || voices[0];
+      voiceSelect.value = bestVoice?.name || voices[0].name;
+    }
+
+    voiceSelect.onchange = () => {
+      bestVoice = voices.find(v => v.name === voiceSelect.value);
+    };
+
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = populateVoiceOptions;
+      populateVoiceOptions();
+    }
+
+    function saveHistory() {
+      localStorage.setItem('nelaxHistory', JSON.stringify(conversationHistory));
+    }
+
+    function downloadChat() {
+      const chatText = conversationHistory.map(entry => {
+        const time = new Date().toLocaleTimeString();
+        const who = entry.role === 'user' ? "🧑 You" : "🤖 NelaX";
+        return `[${time}] ${who}: ${entry.content}`;
+      }).join('\n\n');
+
+      const blob = new Blob([chatText], { type: 'text/plain' });
+      const link = document.createElement('a');
+      link.download = 'nelax_chat.txt';
+      link.href = URL.createObjectURL(blob);
+      link.click();
+    }
+
+    async function sendToNelaX(userText) {
+      const username = usernameInput.value.trim() || "Student";
+      conversationHistory.push({ role: 'user', content: userText });
+      saveHistory();
+      logDiv.innerHTML = `<strong>You:</strong> ${userText}\n<em>NelaX is thinking...</em>`;
+      orb.className = 'orb speaking';
+
+      try {
+        const res = await fetch('/execute', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            command: 'ask_question',
+            args: { 
+              message: userText,
+              username: username
+            }
+          })
+        });
+
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        const data = await res.json();
+        
+        let answer = data.response || "I'm sorry, I couldn't generate a response right now. Please try again.";
+        
+        // Format the response for better readability
+        answer = answer.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        answer = answer.replace(/\n/g, '<br>');
+
+        conversationHistory.push({ role: 'assistant', content: answer });
+        saveHistory();
+
+        logDiv.innerHTML = `<strong>You:</strong> ${userText}<br><strong>NelaX:</strong> ${answer}`;
+        speakOut(answer);
+      } catch (err) {
+        orb.className = 'orb';
+        wave.style.display = "none";
+        logDiv.innerHTML = "❌ Error connecting to NelaX. Please check your connection and try again.";
+        console.error('NelaX error:', err);
+      }
+    }
+
+    function speakOut(text) {
+      // Remove HTML tags for speech
+      const cleanedText = text.replace(/<[^>]*>/g, '');
+      const utterance = new SpeechSynthesisUtterance(cleanedText);
+      utterance.voice = bestVoice;
+      utterance.lang = bestVoice?.lang || 'en-US';
+      utterance.pitch = 1.1;
+      utterance.rate = 0.92;
+      utterance.volume = 0.8;
+      
+      utterance.onend = () => {
+        orb.className = 'orb';
+        wave.style.display = "none";
+      };
+
+      utterance.onerror = () => {
+        orb.className = 'orb';
+        wave.style.display = "none";
+      };
+
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function handleTypedInput() {
+      const typedText = typedInput.value.trim();
+      if (typedText) {
+        sendToNelaX(typedText);
+        typedInput.value = "";
+      } else {
+        logDiv.innerHTML = "Please type a question first!";
+      }
+    }
+
+    // Handle Enter key in typed input
+    typedInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        handleTypedInput();
+      }
+    });
+
+    // Speech recognition setup
+    if (!SpeechRecognition) {
+      logDiv.innerHTML = "❌ Your browser does not support Speech Recognition. You can still type your questions!";
+      micBtn.style.display = "none";
+    } else {
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+      recognition.continuous = false;
+
+      micBtn.onclick = () => {
+        if (orb.classList.contains('listening')) {
+          recognition.stop();
+          return;
+        }
+        
+        logDiv.innerHTML = "🎤 Listening... Speak now!";
+        orb.className = 'orb listening';
+        wave.style.display = "flex";
+        recognition.start();
+      };
+
+      recognition.onresult = (event) => {
+        const spokenText = event.results[0][0].transcript.trim();
+        logDiv.innerHTML = `<strong>You said:</strong> ${spokenText}\n<em>Processing...</em>`;
+        sendToNelaX(spokenText);
+      };
+
+      recognition.onerror = (event) => {
+        orb.className = 'orb';
+        wave.style.display = "none";
+        if (event.error !== 'aborted') {
+          logDiv.innerHTML = `❌ Speech recognition error: ${event.error}. Please try again or type your question.`;
+        }
+      };
+
+      recognition.onend = () => {
+        if (orb.classList.contains('listening')) {
+          orb.className = 'orb';
+          wave.style.display = "none";
+        }
+      };
+    }
+
+    // Display conversation history
+    function displayHistory() {
+      const historyHTML = conversationHistory.map(entry => {
+        if (entry.role === 'user') {
+          return `<strong>You:</strong> ${entry.content}`;
+        } else {
+          return `<strong>NelaX:</strong> ${entry.content}`;
+        }
+      }).join('<br><br>');
+      
+      logDiv.innerHTML = historyHTML;
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    // Initial display
+    displayHistory();
+  </script>
+</body>
+</html>
