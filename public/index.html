@@ -45,6 +45,7 @@
     display: grid;
     grid-template-rows: auto auto 1fr auto;
     min-height: 80vh;
+    max-height: 90vh;
     transition: all 0.3s ease;
   }
 
@@ -175,7 +176,7 @@
     opacity: 0.95;
   }
 
-  /* Chat area */
+  /* Chat area - UPDATED FOR BETTER SCROLLING */
   .chat-wrap{
     background: var(--chat-bg);
     padding: 18px;
@@ -184,6 +185,7 @@
     display: flex;
     flex-direction: column;
     transition: background 0.3s ease;
+    min-height: 400px;
   }
 
   .messages{
@@ -193,6 +195,27 @@
     flex-direction: column;
     gap: 10px;
     scroll-behavior: smooth;
+    height: 100%;
+    max-height: 60vh;
+    min-height: 200px;
+  }
+
+  /* Better scrollbar styling */
+  .messages::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .messages::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .messages::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 3px;
+  }
+
+  .messages::-webkit-scrollbar-thumb:hover {
+    background: #a0aec0;
   }
 
   .bubble{
@@ -482,13 +505,14 @@
 
   /* responsive */
   @media (max-width:600px){
-    .container{ border-radius: 14px; margin: 4px; min-height: 76vh; }
+    .container{ border-radius: 14px; margin: 4px; min-height: 76vh; max-height: 85vh; }
     .header h1 { font-size: 1.1rem; }
     .composer input[type="text"]{ font-size: .98rem; }
     .chat-wrap{ padding: 12px; }
     .nav-bar { padding: 10px 15px; }
     .nav-menu { left: 15px; right: 15px; min-width: auto; }
     .nav-right { gap: 8px; }
+    .messages { max-height: 50vh; }
   }
 </style>
 </head>
@@ -622,18 +646,12 @@
           case 'ℹ️ About':
             window.location.href = '/about';
             break;
-          case '⚙️ Settings':
-            alert('⚙️ Settings panel would open here');
-            break;
-          case 'ℹ️ Privacy Policy':
-            window.location.href = '/privacy-policy';
-            break;
         }
       });
     });
   })();
 
-  // Frontend chat logic with math support
+  // Frontend chat logic with math support - UPDATED SCROLL BEHAVIOR AND HTML RENDERING
   (function(){
     const messagesEl = document.getElementById('messages');
     const inputEl = document.getElementById('userInput');
@@ -641,6 +659,7 @@
     const suggestions = document.getElementById('suggestions');
 
     let isWaiting = false;
+    let userScrolled = false;
 
     // Helper create bubble
     function createBubble(text, who='ai') {
@@ -654,7 +673,7 @@
       else metaLine.textContent = 'NelaX';
       wrap.appendChild(metaLine);
 
-      // content
+      // content - DON'T escape HTML, let it render properly
       const p = document.createElement('div');
       p.innerHTML = text;
       wrap.appendChild(p);
@@ -663,7 +682,21 @@
     }
 
     function scrollToBottom() {
-      messagesEl.scrollTop = messagesEl.scrollHeight;
+      requestAnimationFrame(() => {
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      });
+    }
+
+    function scrollToTop() {
+      requestAnimationFrame(() => {
+        messagesEl.scrollTop = 0;
+      });
+    }
+
+    function ensureVisible(element) {
+      requestAnimationFrame(() => {
+        element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      });
     }
 
     function showTypingIndicator() {
@@ -672,7 +705,11 @@
       t.id = 'typingIndicator';
       t.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
       messagesEl.appendChild(t);
-      scrollToBottom();
+      
+      // Only auto-scroll if user is at bottom
+      if (!userScrolled) {
+        scrollToBottom();
+      }
     }
 
     function removeTypingIndicator() {
@@ -680,18 +717,18 @@
       if (t) t.remove();
     }
 
-    // Enhanced markdown formatting with math support
+    // Enhanced markdown formatting with math support - FIXED HTML RENDERING
     function formatMarkdown(text){
       if (!text) return '';
       
-      // First escape HTML
-      let t = escapeHtml(text);
+      // DON'T escape HTML - let the HTML tags render properly
+      let t = text;
       
       // Handle mathematical expressions with $...$ and $$...$$
       t = t.replace(/\$\$(.*?)\$\$/g, '<div class="math-block">\\[ $1 \\]</div>');
       t = t.replace(/\$(.*?)\$/g, '<span class="math-inline">\\( $1 \\)</span>');
       
-      // Bold **text**
+      // Bold **text** - keep this for markdown bold
       t = t.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
       
       // Bullet points
@@ -709,11 +746,18 @@
       return t;
     }
 
-    // small helpers
+    // small helpers - KEEP THIS FOR USER INPUT ONLY
     function escapeHtml(text){
       const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;' };
       return String(text).replace(/[&<>]/g, m => map[m]);
     }
+
+    // Track user scrolling
+    messagesEl.addEventListener('scroll', () => {
+      const threshold = 100;
+      const isAtBottom = messagesEl.scrollTop + messagesEl.clientHeight >= messagesEl.scrollHeight - threshold;
+      userScrolled = !isAtBottom;
+    });
 
     // initial welcome message
     function bootMessage(){
@@ -735,7 +779,11 @@
       
       const welcomeBubble = createBubble(intro, 'ai');
       messagesEl.appendChild(welcomeBubble);
-      scrollToBottom();
+      
+      // Ensure proper initial scroll
+      setTimeout(() => {
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }, 100);
     }
 
     bootMessage();
@@ -758,11 +806,17 @@
       const text = predefined || inputEl.value.trim();
       if (!text) return;
       
-      // add user bubble
+      // add user bubble - escape user input for safety
       const userBubble = createBubble(escapeHtml(text), 'user');
       messagesEl.appendChild(userBubble);
       inputEl.value = '';
-      scrollToBottom();
+      
+      // Scroll to show new message
+      if (!userScrolled) {
+        scrollToBottom();
+      } else {
+        ensureVisible(userBubble);
+      }
 
       // show typing
       showTypingIndicator();
@@ -787,15 +841,21 @@
         if (!data || !data.success) {
           const err = createBubble('🔌 Network error or server error. Try again.', 'ai');
           messagesEl.appendChild(err);
-          scrollToBottom();
+          if (!userScrolled) scrollToBottom();
           return;
         }
 
-        // render ai response with math formatting
+        // render ai response with math formatting - DON'T escape AI response HTML
         const reply = data.response || '';
         const aiBubble = createBubble(formatMarkdown(reply), 'ai');
         messagesEl.appendChild(aiBubble);
-        scrollToBottom();
+        
+        // Scroll to show AI response
+        if (!userScrolled) {
+          scrollToBottom();
+        } else {
+          ensureVisible(aiBubble);
+        }
         
       } catch (err) {
         removeTypingIndicator();
@@ -803,12 +863,17 @@
         sendBtn.disabled = false;
         const errBubble = createBubble('🔌 Network error. Check connection.', 'ai');
         messagesEl.appendChild(errBubble);
-        scrollToBottom();
+        if (!userScrolled) scrollToBottom();
       }
     }
 
     // focus input
     inputEl.focus();
+
+    // Ensure messages container is properly sized
+    setTimeout(() => {
+      messagesEl.style.minHeight = '200px';
+    }, 500);
 
   })();
 </script>
