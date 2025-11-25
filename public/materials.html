@@ -283,11 +283,6 @@
                 <div id="aiExplanation" class="ai-explanation" style="display: none;"></div>
                 
                 <div class="materials-grid">
-                    <div class="material-section" id="pdfsSection" style="display: none;">
-                        <h3>📄 PDF Documents</h3>
-                        <div class="material-list" id="pdfsList"></div>
-                    </div>
-
                     <div class="material-section" id="booksSection" style="display: none;">
                         <h3>📚 Recommended Books</h3>
                         <div class="material-list" id="booksList"></div>
@@ -338,12 +333,6 @@
                     document.getElementById('aiExplanation').style.display = 'block';
                 }
 
-                // Display PDFs
-                if (data.pdfs && data.pdfs.length > 0) {
-                    displayMaterials(data.pdfs, 'pdfsList', 'pdf');
-                    document.getElementById('pdfsSection').style.display = 'block';
-                }
-
                 // Display Books
                 if (data.books && data.books.length > 0) {
                     displayMaterials(data.books, 'booksList', 'book');
@@ -357,7 +346,7 @@
                 }
 
                 // If no materials found
-                if (!data.pdfs?.length && !data.books?.length && !data.videos?.length) {
+                if (!data.books?.length && !data.videos?.length) {
                     showError('No study materials found for your search. Try different keywords.');
                 }
 
@@ -376,12 +365,7 @@
                 const item = document.createElement('div');
                 item.className = 'material-item';
                 
-                if (type === 'pdf') {
-                    item.innerHTML = `
-                        <h4>${material.title}</h4>
-                        <a href="${material.link}" target="_blank" class="link">📥 Download PDF</a>
-                    `;
-                } else if (type === 'book') {
+                if (type === 'book') {
                     item.innerHTML = `
                         <h4>${material.title}</h4>
                         ${material.author ? `<div class="author">By ${material.author}</div>` : ''}
@@ -400,7 +384,6 @@
 
         function hideAllSections() {
             document.getElementById('aiExplanation').style.display = 'none';
-            document.getElementById('pdfsSection').style.display = 'none';
             document.getElementById('booksSection').style.display = 'none';
             document.getElementById('videosSection').style.display = 'none';
         }
