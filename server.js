@@ -156,21 +156,42 @@ End with: '📚 Here are materials to study further:'`
     const explanation = aiData.choices?.[0]?.message?.content || 
       `Let me help you learn ${topic}. Start with the basic concepts and build from there. 📚 Here are materials to study further:`
 
-    // Mock study materials (in a real app, you'd integrate with actual APIs)
-    const materials = {
-      pdfs: [
-        { title: `${topic} Fundamentals Guide`, link: "#" },
-        { title: `${department} ${topic} Textbook`, link: "#" }
-      ],
-      books: [
-        { title: `Introduction to ${topic}`, author: "Expert Author", link: "#" },
-        { title: `${topic} for ${level} Students`, author: "Education Press", link: "#" }
-      ],
-      videos: [
-        { title: `${topic} Crash Course`, video_url: "#" },
-        { title: `${department} ${topic} Tutorial`, video_url: "#" }
-      ]
+    // Mock study materials (now with real OpenLibrary links)
+const materials = {
+  pdfs: [
+    { 
+      title: `${topic} Fundamentals Guide`, 
+      link: `https://openlibrary.org/search?q=${encodeURIComponent(topic + " fundamentals")}`
+    },
+    { 
+     title: `${department} ${topic} Textbook`, 
+     link: `https://openlibrary.org/search?q=${encodeURIComponent(department + " " + topic)}`
     }
+  ],
+  books: [
+    { 
+      title: `Introduction to ${topic}`, 
+      author: "Expert Author", 
+      link: `https://openlibrary.org/search?q=${encodeURIComponent("Introduction to " + topic)}`
+    },
+    { 
+      title: `${topic} for ${level} Students`, 
+      author: "Education Press", 
+      link: `https://openlibrary.org/search?q=${encodeURIComponent(topic + " textbook for " + level + " students")}`
+    }
+  ],
+  videos: [
+    { 
+      title: `${topic} Crash Course`, 
+      video_url: `https://www.youtube.com/results?search_query=${encodeURIComponent(topic + " crash course")}`
+    },
+    { 
+      title: `${department} ${topic} Tutorial`,
+      video_url: `https://www.youtube.com/results?search_query=${encodeURIComponent(department + " " + topic + " tutorial")}`
+    }
+  ]
+}
+
 
     res.json({
       success: true,
